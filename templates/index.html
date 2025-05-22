@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MePhone - Your Premium Phone Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Light Theme */
+        .light-theme {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-accent: #e2e8f0;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-accent: #2d3748;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Dark Theme */
+        .dark-theme {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-accent: #3a3a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-accent: #e0e0e0;
+            --border-color: #404040;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --gradient-primary: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+            --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+        }
+
+        .theme-bg-primary { background-color: var(--bg-primary); }
+        .theme-bg-secondary { background-color: var(--bg-secondary); }
+        .theme-bg-accent { background-color: var(--bg-accent); }
+        .theme-text-primary { color: var(--text-primary); }
+        .theme-text-secondary { color: var(--text-secondary); }
+        .theme-text-accent { color: var(--text-accent); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-shadow { box-shadow: var(--shadow); }
+        .theme-gradient-primary { background: var(--gradient-primary); }
+        .theme-gradient-secondary { background: var(--gradient-secondary); }
+
+        .navbar-tab {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .product-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .cart-badge {
+            animation: bounce 0.5s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="light-theme theme-bg-primary theme-text-primary transition-all duration-300">
+    <!-- Navigation -->
+    <nav class="theme-bg-secondary theme-shadow sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-mobile-alt text-2xl theme-gradient-primary bg-clip-text text-transparent"></i>
+                        <span class="ml-2 text-xl font-bold theme-text-primary">MePhone</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <button class="navbar-tab px-3 py-2 text-sm font-medium theme-text-primary hover:theme-text-accent active" onclick="showSection('home')">หน้าแรก</button>
+                        <button class="navbar-tab px-3 py-2 text-sm font-medium theme-text-secondary hover:theme-text-accent" onclick="showSection('products')">สินค้า</button>
+                        <button class="navbar-tab px-3 py-2 text-sm font-medium theme-text-secondary hover:theme-text-accent" onclick="showSection('about')">เกี่ยวกับเรา</button>
+                        <button class="navbar-tab px-3 py-2 text-sm font-medium theme-text-secondary hover:theme-text-accent" onclick="showSection('contact')">ติดต่อ</button>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle & Cart -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-full theme-bg-accent theme-text-primary hover:theme-bg-primary transition-colors">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <button onclick="toggleCart()" class="relative p-2 rounded-full theme-bg-accent theme-text-primary hover:theme-bg-primary transition-colors">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                    </button>
+                    <!-- Mobile menu button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-md theme-text-primary">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div id="mobile-menu" class="mobile-menu md:hidden fixed inset-y-0 left-0 w-64 theme-bg-secondary theme-shadow z-50">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-lg font-bold theme-text-primary">เมนู</span>
+                    <button onclick="toggleMobileMenu()" class="theme-text-primary">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav class="space-y-4">
+                    <button class="block w-full text-left px-3 py-2 text-base theme-text-primary hover:theme-bg-accent rounded" onclick="showSection('home'); toggleMobileMenu()">หน้าแรก</button>
+                    <button class="block w-full text-left px-3 py-2 text-base theme-text-primary hover:theme-bg-accent rounded" onclick="showSection('products'); toggleMobileMenu()">สินค้า</button>
+                    <button class="block w-full text-left px-3 py-2 text-base theme-text-primary hover:theme-bg-accent rounded" onclick="showSection('about'); toggleMobileMenu()">เกี่ยวกับเรา</button>
+                    <button class="block w-full text-left px-3 py-2 text-base theme-text-primary hover:theme-bg-accent rounded" onclick="showSection('contact'); toggleMobileMenu()">ติดต่อ</button>
+                </nav>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        <!-- Home Section -->
+        <section id="home-section" class="section-content">
+            <!-- Hero Section -->
+            <div class="theme-gradient-primary text-white py-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6 fade-in">ยินดีต้อนรับสู่ MePhone</h1>
+                    <p class="text-xl md:text-2xl mb-8 fade-in">ร้านโทรศัพท์มือถือคุณภาพพรีเมียม</p>
+                    <button onclick="showSection('products')" class="bg-white text-gray-800 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors fade-in">
+                        เลือกซื้อสินค้า
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="py-16 theme-bg-secondary">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-3xl font-bold text-center mb-12 theme-text-primary">ทำไมต้องเลือก MePhone?</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="text-center p-6 theme-bg-primary rounded-lg theme-shadow">
+                            <i class="fas fa-shield-alt text-4xl theme-gradient-primary bg-clip-text text-transparent mb-4"></i>
+                            <h3 class="text-xl font-semibold mb-2 theme-text-primary">รับประกันคุณภาพ</h3>
+                            <p class="theme-text-secondary">สินค้าของแท้ 100% พร้อมรับประกันครบครัน</p>
+                        </div>
+                        <div class="text-center p-6 theme-bg-primary rounded-lg theme-shadow">
+                            <i class="fas fa-shipping-fast text-4xl theme-gradient-primary bg-clip-text text-transparent mb-4"></i>
+                            <h3 class="text-xl font-semibold mb-2 theme-text-primary">จัดส่งรวดเร็ว</h3>
+                            <p class="theme-text-secondary">จัดส่งถึงบ้านภายใน 24 ชั่วโมง</p>
+                        </div>
+                        <div class="text-center p-6 theme-bg-primary rounded-lg theme-shadow">
+                            <i class="fas fa-headset text-4xl theme-gradient-primary bg-clip-text text-transparent mb-4"></i>
+                            <h3 class="text-xl font-semibold mb-2 theme-text-primary">บริการหลังการขาย</h3>
+                            <p class="theme-text-secondary">ทีมงานพร้อมให้คำปรึกษา 24/7</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products-section" class="section-content hidden">
+            <div class="py-12 theme-bg-primary">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-3xl font-bold text-center mb-12 theme-text-primary">สินค้าของเรา</h2>
+                    
+                    <!-- Search Bar -->
+                    <div class="max-w-md mx-auto mb-8">
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="ค้นหาสินค้า..." class="w-full p-3 pl-10 theme-bg-secondary theme-border border rounded-lg theme-text-primary">
+                            <i class="fas fa-search absolute left-3 top-3 theme-text-secondary"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div class="flex flex-wrap justify-center mb-8 gap-4">
+                        <button onclick="filterProducts('all')" class="category-btn px-6 py-2 rounded-full theme-bg-secondary theme-text-primary border theme-border hover:theme-bg-accent transition-colors active">ทั้งหมด</button>
+                        <button onclick="filterProducts('iphone')" class="category-btn px-6 py-2 rounded-full theme-bg-secondary theme-text-primary border theme-border hover:theme-bg-accent transition-colors">iPhone</button>
+                        <button onclick="filterProducts('samsung')" class="category-btn px-6 py-2 rounded-full theme-bg-secondary theme-text-primary border theme-border hover:theme-bg-accent transition-colors">Samsung</button>
+                        <button onclick="filterProducts('accessories')" class="category-btn px-6 py-2 rounded-full theme-bg-secondary theme-text-primary border theme-border hover:theme-bg-accent transition-colors">อุปกรณ์เสริม</button>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading" class="text-center py-8 hidden">
+                        <div class="loading mx-auto"></div>
+                        <p class="mt-2 theme-text-secondary">กำลังโหลดสินค้า...</p>
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- Products will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about-section" class="section-content hidden">
+            <div class="py-16 theme-bg-primary">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 class="text-3xl font-bold mb-8 theme-text-primary">เกี่ยวกับ MePhone</h2>
+                    <p class="text-lg mb-6 theme-text-secondary">
+                        MePhone เป็นร้านจำหน่ายโทรศัพท์มือถือและอุปกรณ์เสริมคุณภาพสูง 
+                        เราให้ความสำคัญกับคุณภาพสินค้าและการบริการลูกค้าเป็นอันดับแรก
+                    </p>
+                    <p class="text-lg mb-8 theme-text-secondary">
+                        ด้วยประสบการณ์กว่า 10 ปีในธุรกิจนี้ เราพร้อมให้คำปรึกษาและแนะนำสินค้าที่เหมาะสมกับความต้องการของคุณ
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                        <div class="theme-bg-secondary p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4 theme-text-primary">วิสัยทัศน์</h3>
+                            <p class="theme-text-secondary">มุ่งมั่นที่จะเป็นร้านค้าโทรศัพท์มือถือที่น่าเชื่อถือและเป็นที่หนึ่งในใจลูกค้า</p>
+                        </div>
+                        <div class="theme-bg-secondary p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4 theme-text-primary">พันธกิจ</h3>
+                            <p class="theme-text-secondary">นำเสนอสินค้าคุณภาพดีในราคาที่เป็นธรรม พร้อมบริการที่เป็นเลิศ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact-section" class="section-content hidden">
+            <div class="py-16 theme-bg-primary">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-3xl font-bold text-center mb-12 theme-text-primary">ติดต่อเรา</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="theme-bg-secondary p-8 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-6 theme-text-primary">ข้อมูลการติดต่อ</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt theme-gradient-primary bg-clip-text text-transparent mr-3"></i>
+                                    <span class="theme-text-secondary">123 ถนนสุขุมวิท กรุงเทพมหานคร 10110</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone theme-gradient-primary bg-clip-text text-transparent mr-3"></i>
+                                    <span class="theme-text-secondary">02-123-4567</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope theme-gradient-primary bg-clip-text text-transparent mr-3"></i>
+                                    <span class="theme-text-secondary">info@mephone.com</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock theme-gradient-primary bg-clip-text text-transparent mr-3"></i>
+                                    <span class="theme-text-secondary">จันทร์-อาทิตย์ 9:00-21:00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="theme-bg-secondary p-8 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-6 theme-text-primary">ส่งข้อความ</h3>
+                            <form id="contact-form" class="space-y-4">
+                                <input type="text" id="contact-name" placeholder="ชื่อของคุณ" class="w-full p-3 theme-bg-primary theme-border border rounded-lg theme-text-primary" required>
+                                <input type="email" id="contact-email" placeholder="อีเมลของคุณ" class="w-full p-3 theme-bg-primary theme-border border rounded-lg theme-text-primary" required>
+                                <textarea id="contact-message" placeholder="ข้อความ" rows="4" class="w-full p-3 theme-bg-primary theme-border border rounded-lg theme-text-primary" required></textarea>
+                                <button type="submit" class="w-full theme-gradient-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                    <span id="contact-btn-text">ส่งข้อความ</span>
+                                    <div id="contact-btn-loading" class="loading hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-80 theme-bg-secondary theme-shadow transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold theme-text-primary">ตรวจสอบคำสั่งซื้อ</h3>
+                <button onclick="toggleCart()" class="theme-text-primary">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="cart-items" class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                <!-- Cart items will be added here -->
+            </div>
+            <div class="border-t theme-border pt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="font-semibold theme-text-primary">รวมทั้งหมด:</span>
+                    <span id="cart-total" class="font-bold text-xl theme-text-primary">฿0</span>
+                </div>
+                <button onclick="checkout()" class="w-full theme-gradient-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                    สั่งซื้อ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeOverlays()"></div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="theme-bg-secondary theme-shadow rounded-lg p-4 flex items-center space-x-3">
+            <i id="toast-icon" class="fas fa-check-circle text-green-500"></i>
+            <span id="toast-message" class="theme-text-primary"></span>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTheme = 'light';
+        let cart = [];
+        let currentSection = 'home';
+        let products = [];
+
+        // API Base URL
+        const API_BASE = '';
+
+        // Initialize the app
+        async function init() {
+            await loadProducts();
+            await loadCart();
+            showSection('home');
+            setupEventListeners();
+        }
+
+        // Load products from API
+        async function loadProducts(category = 'all') {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/api/products${category !== 'all' ? `?category=${category}` : ''}`);
+                products = await response.json();
+                renderProducts(products);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showToast('เกิดข้อผิดพลาดในการโหลดสินค้า', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load cart from API
+        async function loadCart() {
+            try {
+                const response = await fetch(`${API_BASE}/api/cart`);
+                cart = await response.json();
+                updateCartUI();
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchProducts(e.target.value);
+                }, 300);
+            });
+
+            // Contact form
+            const contactForm = document.getElementById('contact-form');
+            contactForm.addEventListener('submit', handleContactSubmit);
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (currentTheme === 'light') {
+                body.classList.remove('light-theme');
+                body.classList.add('dark-theme');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                currentTheme = 'dark';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                currentTheme = 'light';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme && savedTheme !== currentTheme) {
+                toggleTheme();
+            }
+        }
+
+        // Section navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+            
+            // Show selected section
+            const targetSection = document.getElementById(section + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // Update navbar - desktop
+            document.querySelectorAll('.navbar-tab').forEach(tab => {
+                tab.classList.remove('active', 'theme-text-primary');
+                tab.classList.add('theme-text-secondary');
+            });
+            
+            // Find and activate current section button
+            const currentButton = document.querySelector(`button[onclick*="showSection('${section}')"]`);
+            if (currentButton) {
+                currentButton.classList.remove('theme-text-secondary');
+                currentButton.classList.add('active', 'theme-text-primary');
+            }
+            
+            currentSection = section;
+            
+            // If switching to products section, make sure products are rendered
+            if (section === 'products' && products.length === 0) {
+                loadProducts();
+            }
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('overlay');
+            
+            mobileMenu.classList.toggle('open');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Show loading spinner
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const grid = document.getElementById('products-grid');
+            
+            if (show) {
+                loading.classList.remove('hidden');
+                grid.classList.add('hidden');
+            } else {
+                loading.classList.add('hidden');
+                grid.classList.remove('hidden');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const messageEl = document.getElementById('toast-message');
+            
+            messageEl.textContent = message;
+            
+            if (type === 'success') {
+                icon.classList.remove('fa-exclamation-circle', 'text-red-500');
+                icon.classList.add('fa-check-circle', 'text-green-500');
+            } else {
+                icon.classList.remove('fa-check-circle', 'text-green-500');
+                icon.classList.add('fa-exclamation-circle', 'text-red-500');
+            }
+            
+            toast.classList.remove('translate-x-full');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Product functions
+        function renderProducts(filteredProducts = products) {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = filteredProducts.map(product => `
+                <div class="product-card theme-bg-secondary rounded-lg theme-shadow p-6 fade-in">
+                    <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.src='/api/placeholder/300/300'">
+                    <h3 class="font-semibold text-lg mb-2 theme-text-primary">${product.name}</h3>
+                    <p class="theme-text-secondary text-sm mb-4">${product.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xl font-bold theme-gradient-primary bg-clip-text text-transparent">฿${product.price.toLocaleString()}</span>
+                        <button onclick="addToCart(${product.id})" class="theme-gradient-secondary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                            <i class="fas fa-cart-plus mr-2"></i>เพิ่มลงตะกร้า
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function filterProducts(category) {
+            // Update active category button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active', 'theme-gradient-primary', 'text-white');
+                btn.classList.add('theme-bg-secondary', 'theme-text-primary');
+            });
+            
+            event.target.classList.remove('theme-bg-secondary', 'theme-text-primary');
+            event.target.classList.add('active', 'theme-gradient-primary', 'text-white');
+            
+            // Load products from API
+            await loadProducts(category);
+        }
+
+        // Search products
+        async function searchProducts(query) {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
+                const searchResults = await response.json();
+                renderProducts(searchResults);
+            } catch (error) {
+                console.error('Error searching products:', error);
+                showToast('เกิดข้อผิดพลาดในการค้นหา', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Cart functions
+        async function addToCart(productId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/cart`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ product_id: productId, quantity: 1 })
+                });
+                
+                const result = await response.json();
+                cart = result.cart;
+                updateCartUI();
+                showCartNotification();
+                showToast('เพิ่มสินค้าลงตะกร้าแล้ว');
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showToast('เกิดข้อผิดพลาดในการเพิ่มสินค้า', 'error');
+            }
+        }
+
+        async function removeFromCart(productId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/cart/${productId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                cart = result.cart;
+                updateCartUI();
+                showToast('ลบสินค้าจากตะกร้าแล้ว');
+            } catch (error) {
+                console.error('Error removing from cart:', error);
+                showToast('เกิดข้อผิดพลาดในการลบสินค้า', 'error');
+            }
+        }
+
+        async function updateQuantity(productId, newQuantity) {
+            try {
+                const response = await fetch(`${API_BASE}/api/cart/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: newQuantity })
+                });
+                
+                const result = await response.json();
+                cart = result.cart;
+                updateCartUI();
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                showToast('เกิดข้อผิดพลาดในการอัพเดทจำนวน', 'error');
+            }
+        }
+
+        function updateCartUI() {
+            const cartCount = document.getElementById('cart-count');
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            
+            // Update cart count
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            
+            // Update cart items
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="theme-text-secondary text-center">ตะกร้าสินค้าว่างเปล่า</p>';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="flex items-center space-x-4 p-3 theme-bg-primary rounded-lg">
+                        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded" onerror="this.src='/api/placeholder/300/300'">
+                        <div class="flex-1">
+                            <h4 class="font-medium theme-text-primary text-sm">${item.name}</h4>
+                            <p class="theme-text-secondary text-sm">฿${item.price.toLocaleString()}</p>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-6 h-6 theme-bg-accent theme-text-primary rounded text-sm flex items-center justify-center">-</button>
+                                <span class="theme-text-primary">${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-6 h-6 theme-bg-accent theme-text-primary rounded text-sm flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            
+            // Update total
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.textContent = `฿${total.toLocaleString()}`;
+        }
+
+        function toggleCart() {
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            cartSidebar.classList.toggle('translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function showCartNotification() {
+            const cartCount = document.getElementById('cart-count');
+            cartCount.classList.add('cart-badge');
+            setTimeout(() => cartCount.classList.remove('cart-badge'), 500);
+        }
+
+        // Checkout function
+        function checkout() {
+            if (cart.length === 0) {
+                showToast('ตะกร้าสินค้าว่างเปล่า', 'error');
+                return;
+            }
+            
+            // In a real app, this would redirect to payment page
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (confirm(`ยืนยันการสั่งซื้อ\nจำนวนสินค้า: ${itemCount} ชิ้น\nยอดรวม: ฿${total.toLocaleString()}`)) {
+                showToast('ขอบคุณสำหรับการสั่งซื้อ! เราจะติดต่อกลับเร็วๆ นี้');
+                cart = [];
+                updateCartUI();
+                toggleCart();
+            }
+        }
+
+        // Contact form handler
+        async function handleContactSubmit(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const message = document.getElementById('contact-message').value;
+            
+            const btnText = document.getElementById('contact-btn-text');
+            const btnLoading = document.getElementById('contact-btn-loading');
+            
+            // Show loading state
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, message })
+                });
+                
+                const result = await response.json();
+                showToast(result.message);
+                e.target.reset();
+            } catch (error) {
+                console.error('Error sending contact form:', error);
+                showToast('เกิดข้อผิดพลาดในการส่งข้อความ', 'error');
+            } finally {
+                // Hide loading state
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
+
+        // Close overlays
+        function closeOverlays() {
+            const overlay = document.getElementById('overlay');
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            overlay.classList.add('hidden');
+            cartSidebar.classList.add('translate-x-full');
+            mobileMenu.classList.remove('open');
+        }
+
+        // Handle window resize for responsive design
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                document.getElementById('mobile-menu').classList.remove('open');
+                document.getElementById('overlay').classList.add('hidden');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC to close overlays
+            if (e.key === 'Escape') {
+                closeOverlays();
+            }
+            
+            // Ctrl/Cmd + Shift + T to toggle theme
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                toggleTheme();
+            }
+        });
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedTheme();
+            init();
+        });
+
+        // Handle offline/online status
+        window.addEventListener('online', function() {
+            showToast('เชื่อมต่ออินเทอร์เน็ตแล้ว');
+        });
+
+        window.addEventListener('offline', function() {
+            showToast('ไม่มีการเชื่อมต่ออินเทอร์เน็ต', 'error');
+        });
+    </script>
+</body>
+</html>
